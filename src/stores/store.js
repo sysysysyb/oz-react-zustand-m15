@@ -27,6 +27,11 @@ const useBoardStore = create(
             }
           }),
         })),
+      updateBoardType: (id, newType) =>
+        set((state) => ({
+          data: state.data.map((d) => (d.id === id ? { ...d, type: newType } : d)),
+        })),
+      reorderItems: (newData) => set({ data: newData }),
     }),
     {
       name: 'board-storage',
