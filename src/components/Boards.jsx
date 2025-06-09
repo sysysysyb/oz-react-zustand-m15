@@ -20,8 +20,8 @@ const typeToKorean = (type) => {
 };
 
 const Boards = ({ type }) => {
-  const data = useBoardStore((state) => state.board);
-  const filteredData = data.filter((item) => item.type === type);
+  const board = useBoardStore((state) => state.board);
+  const filteredBoards = board.filter((item) => item.type === type);
   const [item, setItem] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [confirmIsOpen, setConfirmIsOpen] = useState(false);
@@ -75,8 +75,8 @@ const Boards = ({ type }) => {
         <p className="text-lg font-semibold">{typeToKorean(type)}</p>
       </div>
       <div className="flex flex-col gap-2 p-4">
-        <SortableContext items={filteredData} strategy={verticalListSortingStrategy}>
-          {filteredData.map((item) => (
+        <SortableContext items={filteredBoards} strategy={verticalListSortingStrategy}>
+          {filteredBoards.map((item) => (
             <SortableItem key={item.id} id={item.id} item={item} onClick={() => handleModalOpen(item)} />
           ))}
         </SortableContext>

@@ -3,6 +3,7 @@ import Boards from './components/Boards';
 import Controller from './components/Controller';
 import useBoardStore from './stores/store';
 import { useState } from 'react';
+import { arrayMove } from '@dnd-kit/sortable';
 
 //1. zustand로 상태 관리 라이브러리를 변경해야 합니다.
 //2. Recoil과 관련된 데이터를 삭제하고, RecoilRoot를 제거하세요.
@@ -21,15 +22,49 @@ function App() {
   );
 
   const handleDragStart = (event) => {
-    console.log('drag start');
+    const { active } = event;
+    setActiveId(active.id);
   };
 
   const handleDragEnd = (event) => {
-    console.log('drag end');
+    const { active, over } = event;
+
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+
+    const activeItem = board.find((item) => item.id === active.id);
+    if (!activeItem) {
+      setActiveId(null);
+      return;
+    }
+
+    if (over.data?.current?.type && activeItem.type !== over.data.current.type) {
+      updateBoardType(active.id, over.data.current.type);
+    } else if (over.id !== active.id) {
+      const activeIndex = board.findIndex((item) => item.id === active.id);
+      const overIndex = board.findIndex((item) => item.id === over.id);
+
+      if (activeIndex !== -1 && overIndex !== -1) {
+        const newItems = arrayMove(board, activeIndex, overIndex);
+        reorderItems(newItems);
+      }
+    }
+
+    setActiveId(null);
   };
 
   const handleDragOver = (event) => {
-    console.log('drag over');
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeItem = board.find((item) => item.id === active.id);
+    if (!activeItem) return;
+    if (over.board?.current?.type && activeItem.type !== over.board.current.type && active.id !== over.id) {
+      updateBoardType(active.id, over.board.current.type);
+    }
   };
 
   return (

@@ -29,9 +29,9 @@ const useBoardStore = create(
         })),
       updateBoardType: (id, newType) =>
         set((state) => ({
-          data: state.data.map((d) => (d.id === id ? { ...d, type: newType } : d)),
+          board: state.board.map((b) => (b.id === id ? { ...b, type: newType } : b)),
         })),
-      reorderItems: (newData) => set({ data: newData }),
+      reorderItems: (newBoard) => set({ board: newBoard }),
     }),
     {
       name: 'board-storage',
