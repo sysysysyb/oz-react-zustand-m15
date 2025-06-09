@@ -3,6 +3,8 @@ import BoardDetailModal from './BoardDetailModal';
 import BoardConfirmModal from './BoardConfirmModal';
 import BoardEditModal from './BoardEditModal';
 import useBoardStore from '../stores/store';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 const typeToKorean = (type) => {
   switch (type) {
@@ -25,6 +27,14 @@ const Boards = ({ type }) => {
   const [confirmIsOpen, setConfirmIsOpen] = useState(false);
   const [editIsOpen, setEditIsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: type,
+    data: {
+      type,
+      accepts: ['todo', 'inprogress', 'done'],
+    },
+  });
 
   // Detail Modal
   const handleModalOpen = (item) => {
@@ -57,26 +67,19 @@ const Boards = ({ type }) => {
   };
 
   return (
-    <div className="w-full flex flex-col">
+    <div
+      ref={setNodeRef}
+      className={`w-full flex flex-col ${isOver ? 'bg-slate-200 rounded-md ring-2 ring-slate-400 ring-inset' : ''}`}
+    >
       <div className="w-full h-[60px] bg-stone-200 rounded-sm flex items-center justify-center">
         <p className="text-lg font-semibold">{typeToKorean(type)}</p>
       </div>
       <div className="flex flex-col gap-2 p-4">
-        {filteredData.map((item) => (
-          <div
-            onClick={() => handleModalOpen(item)}
-            key={item.id}
-            className="bg-white hover:bg-stone-100 shadow-md rounded-md p-4 cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              {item.type === 'todo' && <div className="animate-pulse w-2 h-2 rounded-full bg-green-500"></div>}
-              {item.type === 'inprogress' && <div className="animate-pulse w-2 h-2 rounded-full bg-amber-500"></div>}
-              {item.type === 'done' && <div className="animate-pulse w-2 h-2 rounded-full bg-red-500"></div>}
-            </div>
-            <p className="text-sm text-gray-500">{item.created_at}</p>
-          </div>
-        ))}
+        <SortableContext items={filteredData} strategy={verticalListSortingStrategy}>
+          {filteredData.map((item) => (
+            <SortableItem key={item.id} id={item.id} item={item} onClick={() => handleModalOpen(item)} />
+          ))}
+        </SortableContext>
       </div>
       {isOpen && (
         <BoardDetailModal
@@ -88,6 +91,37 @@ const Boards = ({ type }) => {
       )}
       {confirmIsOpen && <BoardConfirmModal onClose={handleConfirmModalClose} id={selectedId} />}
       {editIsOpen && <BoardEditModal onClose={handleEditModalClose} item={item} />}
+    </div>
+  );
+};
+
+const SortableItem = ({ id, item, onClick }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const itemStyle = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={itemStyle}
+      {...attributes}
+      {...listeners}
+      onClick={onClick}
+      key={id}
+      className="bg-white hover:bg-stone-100 shadow-md rounded-md p-4 cursor-pointer"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">{item.title}</h3>
+        {item.type === 'todo' && <div className="animate-pulse w-2 h-2 rounded-full bg-green-500"></div>}
+        {item.type === 'inprogress' && <div className="animate-pulse w-2 h-2 rounded-full bg-amber-500"></div>}
+        {item.type === 'done' && <div className="animate-pulse w-2 h-2 rounded-full bg-red-500"></div>}
+      </div>
+      <p className="text-sm text-gray-500">{item.created_at}</p>
     </div>
   );
 };
