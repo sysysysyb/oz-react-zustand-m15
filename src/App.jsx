@@ -1,4 +1,3 @@
-import { RecoilRoot } from 'recoil';
 import Boards from './components/Boards';
 import Controller from './components/Controller';
 
